@@ -7,6 +7,11 @@ timeouts:
   connection: 10
   request: 30
 
+authentication:
+  login_endpoint: /auth/login
+  username: mor_2314
+  password: 83r5^_
+
 logging:
   level: INFO
 
