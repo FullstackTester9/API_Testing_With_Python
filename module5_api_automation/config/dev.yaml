@@ -1,0 +1,4 @@
+environment: qa
+
+api:
+  base_url: https://fakestoreapi.com

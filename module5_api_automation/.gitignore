@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# pytest
+.pytest_cache/
+
+# Allure
+allure-results/
+allure-report/
+
+# Reports
+reports/*
+!reports/.gitkeep
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# Environment files
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.pem
+*.key
+secrets.yaml
+secrets.yml

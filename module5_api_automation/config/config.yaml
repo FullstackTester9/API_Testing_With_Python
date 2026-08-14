@@ -1,0 +1,14 @@
+environment: qa
+
+api:
+  verify_ssl: true
+
+timeouts:
+  connection: 10
+  request: 30
+
+logging:
+  level: INFO
+
+reporting:
+  allure_results_directory: reports/allure-results
