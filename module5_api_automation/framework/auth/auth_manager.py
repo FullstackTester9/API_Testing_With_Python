@@ -3,10 +3,15 @@ from framework.auth.token_manager import TokenManager
 
 class AuthenticationManager:
 
-    def __init__(self, api_client, config):
+    def __init__(
+        self,
+        api_client,
+        config,
+        token_manager
+    ):
         self.api_client = api_client
         self.config = config
-        self.token_manager = TokenManager()
+        self.token_manager = token_manager
 
     def login(self):
 
