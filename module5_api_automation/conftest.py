@@ -5,6 +5,8 @@ from framework.auth.auth_manager import AuthenticationManager
 from framework.auth.token_manager import TokenManager
 from framework.auth.token_provider import TokenProvider
 from framework.config.environment_manager import EnvironmentManager
+from framework.assertions import ResponseAssertions
+from framework.assertions import SchemaValidator
 
 
 @pytest.fixture(scope="session")
@@ -20,6 +22,16 @@ def token_manager():
 @pytest.fixture(scope="session")
 def token_provider(token_manager):
     return TokenProvider(token_manager)
+
+
+@pytest.fixture(scope="session")
+def assertions():
+    return ResponseAssertions()
+
+
+@pytest.fixture(scope="session")
+def schema_validator():
+    return SchemaValidator()
 
 
 @pytest.fixture(scope="session")
