@@ -1,6 +1,9 @@
 import pytest
 
-from framework.payloads import build_product_request
+from framework.payloads import (
+    build_product_request,
+    override_product_request
+)
 
 
 # =====================================================
@@ -76,3 +79,75 @@ def test_product_request_builder_with_multiple_datasets(
     payload = build_product_request(product_data)
 
     assert payload == product_data
+
+# =====================================================
+# Tests for "Product" level overrides.
+# =====================================================
+@pytest.mark.data_management
+def test_product_request_supports_field_override(
+    valid_product_data
+):
+
+    payload = build_product_request(
+        valid_product_data
+    )
+
+    updated_payload = override_product_request(
+        payload,
+        price=999.99
+    )
+
+    assert updated_payload["title"] == (
+        valid_product_data["title"]
+    )
+
+    assert updated_payload["price"] == 999.99
+
+    assert updated_payload["category"] == (
+        valid_product_data["category"]
+    )
+
+# =====================================================
+# Overriding data multiple times.
+# =====================================================
+@pytest.mark.data_management
+@pytest.mark.parametrize(
+    "override_data",
+    [
+        pytest.param(
+            {"price": 10.00},
+            id="OVERRIDE-001"
+        ),
+        pytest.param(
+            {"price": 100.00},
+            id="OVERRIDE-002"
+        ),
+        pytest.param(
+            {
+                "price": 999.99,
+                "category": "electronics"
+            },
+            id="OVERRIDE-003"
+        )
+    ]
+)
+
+# =====================================================
+# This test handles multiple override combination.
+# =====================================================
+def test_product_request_with_dynamic_overrides(
+    valid_product_data,
+    override_data
+):
+
+    payload = build_product_request(
+        valid_product_data
+    )
+
+    updated_payload = override_product_request(
+        payload,
+        **override_data
+    )
+
+    for key, value in override_data.items():
+        assert updated_payload[key] == value

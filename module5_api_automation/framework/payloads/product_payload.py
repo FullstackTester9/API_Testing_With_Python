@@ -48,14 +48,12 @@ def build_product_request(data):
     )
 
 # =====================================================
-# Building the payload for "PRODUCT" using optional
-# fields template.
+# This provide product specific interface.
 # =====================================================
-PRODUCT_OPTIONAL_PAYLOAD_TEMPLATE = {
-    "title": "{title}",
-    "price": "{price}",
-    "description": "{description}",
-    "category": "{category}",
-    "image": "{image}",
-    "brand": "{brand}"
-}
+def override_product_request(payload, **overrides):
+    builder = RequestBuilder(PRODUCT_PAYLOAD_TEMPLATE)
+
+    return builder.override(
+        payload,
+        **overrides
+    )

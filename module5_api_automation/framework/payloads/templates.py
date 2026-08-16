@@ -15,3 +15,16 @@ PRODUCT_PAYLOAD_TEMPLATE = {
     "category": "{category}",
     "image": "{image}"
 }
+
+# =====================================================
+# Building the payload for "PRODUCT" using optional
+# fields template.
+# =====================================================
+PRODUCT_OPTIONAL_PAYLOAD_TEMPLATE = {
+    "title": "{title}",
+    "price": "{price}",
+    "description": "{description}",
+    "category": "{category}",
+    "image": "{image}",
+    "brand": "{brand}"
+}
