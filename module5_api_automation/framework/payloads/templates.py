@@ -28,3 +28,22 @@ PRODUCT_OPTIONAL_PAYLOAD_TEMPLATE = {
     "image": "{image}",
     "brand": "{brand}"
 }
+
+# =====================================================
+# Building the payload for "PRODUCT" using nested
+# fields.
+# =====================================================
+NESTED_PRODUCT_PAYLOAD_TEMPLATE = {
+    "title": "{title}",
+    "price": "{price}",
+    "description": "{description}",
+    "category": "{category}",
+    "image": "{image}",
+    "metadata": {
+        "brand": "{brand}",
+        "manufacturer": {
+            "name": "{manufacturer_name}",
+            "country": "{manufacturer_country}"
+        }
+    }
+}

@@ -182,3 +182,315 @@ def test_request_builder_rejects_unknown_override_field():
             payload,
             unknown_field="Invalid"
         )
+
+
+# =====================================================
+# Tests for nested field override.
+# =====================================================
+@pytest.mark.data_management
+def test_request_builder_sets_nested_field():
+
+    template = {
+        "title": "{title}",
+        "metadata": {
+            "brand": "{brand}",
+            "country": "{country}"
+        }
+    }
+
+    builder = RequestBuilder(template)
+
+    payload = builder.build(
+        title="QA Product",
+        metadata={
+            "brand": "Original Brand",
+            "country": "India"
+        }
+    )
+
+    updated_payload = builder.set_nested(
+        payload,
+        "metadata.brand",
+        "Updated Brand"
+    )
+
+    assert updated_payload["metadata"]["brand"] == (
+        "Updated Brand"
+    )
+
+    assert updated_payload["metadata"]["country"] == (
+        "India"
+    )
+
+
+# =====================================================
+# Verifies multiple nesting levels.
+# =====================================================
+@pytest.mark.data_management
+def test_request_builder_sets_deep_nested_field():
+
+    template = {
+        "metadata": {
+            "manufacturer": {
+                "name": "{name}",
+                "country": "{country}"
+            }
+        }
+    }
+
+    builder = RequestBuilder(template)
+
+    payload = builder.build(
+        metadata={
+            "manufacturer": {
+                "name": "Original Manufacturer",
+                "country": "India"
+            }
+        }
+    )
+
+    updated_payload = builder.set_nested(
+        payload,
+        "metadata.manufacturer.name",
+        "Updated Manufacturer"
+    )
+
+    assert (
+        updated_payload["metadata"]
+        ["manufacturer"]
+        ["name"]
+        == "Updated Manufacturer"
+    )
+
+    assert (
+        updated_payload["metadata"]
+        ["manufacturer"]
+        ["country"]
+        == "India"
+    )
+
+
+# =====================================================
+# Verifies invalid nested path.
+# =====================================================
+@pytest.mark.data_management
+def test_request_builder_rejects_unknown_nested_field():
+
+    template = {
+        "metadata": {
+            "brand": "{brand}"
+        }
+    }
+
+    builder = RequestBuilder(template)
+
+    payload = builder.build(
+        metadata={
+            "brand": "QA Brand"
+        }
+    )
+
+    with pytest.raises(KeyError):
+
+        builder.set_nested(
+            payload,
+            "metadata.unknown",
+            "Invalid"
+        )
+
+
+# =====================================================
+# Tests for optional field addition.
+# =====================================================
+@pytest.mark.data_management
+def test_request_builder_adds_optional_field():
+
+    template = {
+        "title": "{title}",
+        "metadata": {}
+    }
+
+    builder = RequestBuilder(template)
+
+    payload = builder.build(
+        title="QA Product",
+        metadata={}
+    )
+
+    updated_payload = builder.add_optional(
+        payload,
+        "metadata.brand",
+        "QA Brand"
+    )
+
+    assert (
+        updated_payload["metadata"]["brand"]
+        == "QA Brand"
+    )
+
+
+# =====================================================
+# Tests for deep optional field addition.
+# =====================================================
+@pytest.mark.data_management
+def test_request_builder_adds_deep_optional_field():
+
+    template = {
+        "title": "{title}",
+        "metadata": {}
+    }
+
+    builder = RequestBuilder(template)
+
+    payload = builder.build(
+        title="QA Product",
+        metadata={}
+    )
+
+    updated_payload = builder.add_optional(
+        payload,
+        "metadata.manufacturer.country",
+        "India"
+    )
+
+    assert (
+        updated_payload["metadata"]
+        ["manufacturer"]
+        ["country"]
+        == "India"
+    )
+
+
+# =====================================================
+# Tests for optional field removal.
+# =====================================================
+@pytest.mark.data_management
+def test_request_builder_removes_optional_field():
+
+    template = {
+        "title": "{title}",
+        "metadata": {
+            "brand": "{brand}"
+        }
+    }
+
+    builder = RequestBuilder(template)
+
+    payload = builder.build(
+        title="QA Product",
+        metadata={
+            "brand": "QA Brand"
+        }
+    )
+
+    updated_payload = builder.remove_optional(
+        payload,
+        "metadata.brand"
+    )
+
+    assert "brand" not in (
+        updated_payload["metadata"]
+    )
+
+
+# =====================================================
+# Tests for deep optional field removal
+# =====================================================
+@pytest.mark.data_management
+def test_request_builder_removes_deep_optional_field():
+
+    template = {
+        "metadata": {
+            "manufacturer": {
+                "name": "{name}",
+                "country": "{country}"
+            }
+        }
+    }
+
+    builder = RequestBuilder(template)
+
+    payload = builder.build(
+        metadata={
+            "manufacturer": {
+                "name": "QA Corp",
+                "country": "India"
+            }
+        }
+    )
+
+    updated_payload = builder.remove_optional(
+        payload,
+        "metadata.manufacturer.country"
+    )
+
+    assert (
+        "country"
+        not in updated_payload["metadata"]["manufacturer"]
+    )
+
+
+# =====================================================
+# Verify original payload is not modified.
+# =====================================================
+@pytest.mark.data_management
+def test_nested_operations_do_not_modify_original():
+
+    template = {
+        "metadata": {
+            "brand": "Original"
+        }
+    }
+
+    builder = RequestBuilder(template)
+
+    payload = builder.build(
+        metadata={
+            "brand": "Original"
+        }
+    )
+
+    updated_payload = builder.set_nested(
+        payload,
+        "metadata.brand",
+        "Updated"
+    )
+
+    assert (
+        payload["metadata"]["brand"]
+        == "Original"
+    )
+
+    assert (
+        updated_payload["metadata"]["brand"]
+        == "Updated"
+    )
+
+
+# =====================================================
+# Tests for optional field that doesn't exist.
+# =====================================================
+@pytest.mark.data_management
+def test_remove_missing_optional_field_is_safe():
+
+    template = {
+        "metadata": {}
+    }
+
+    builder = RequestBuilder(template)
+
+    payload = builder.build(
+        metadata={}
+    )
+
+    updated_payload = builder.remove_optional(
+        payload,
+        "metadata.brand"
+    )
+
+    assert updated_payload == payload
+
+
+# =====================================================
+#
+# =====================================================

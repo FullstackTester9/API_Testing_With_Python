@@ -2,7 +2,8 @@ import pytest
 
 from framework.payloads import (
     build_product_request,
-    override_product_request
+    override_product_request,
+    build_nested_product_request
 )
 
 
@@ -151,3 +152,40 @@ def test_product_request_with_dynamic_overrides(
 
     for key, value in override_data.items():
         assert updated_payload[key] == value
+
+
+# =====================================================
+# Tests for nested product request.
+# =====================================================
+@pytest.mark.data_management
+def test_build_nested_product_request():
+
+    data = {
+        "title": "Nested QA Product",
+        "price": 49.99,
+        "description": "Nested payload test",
+        "category": "electronics",
+        "image": "https://i.pravatar.cc",
+        "brand": "QA Brand",
+        "manufacturer_name": "QA Corporation",
+        "manufacturer_country": "India"
+    }
+
+    payload = build_nested_product_request(data)
+
+    assert payload["title"] == data["title"]
+
+    assert (
+        payload["metadata"]["brand"]
+        == data["brand"]
+    )
+
+    assert (
+        payload["metadata"]["manufacturer"]["name"]
+        == data["manufacturer_name"]
+    )
+
+    assert (
+        payload["metadata"]["manufacturer"]["country"]
+        == data["manufacturer_country"]
+    )

@@ -1,6 +1,9 @@
 from datetime import datetime
 from framework.payloads.request_builder import RequestBuilder
-from framework.payloads.templates import PRODUCT_PAYLOAD_TEMPLATE
+from framework.payloads.templates import (
+    PRODUCT_PAYLOAD_TEMPLATE,
+    NESTED_PRODUCT_PAYLOAD_TEMPLATE
+)
 
 
 # =====================================================
@@ -56,4 +59,28 @@ def override_product_request(payload, **overrides):
     return builder.override(
         payload,
         **overrides
+    )
+
+# =====================================================
+# Building payload for "Product" using nested template.
+# =====================================================
+def build_nested_product_request(data):
+
+    builder = RequestBuilder(
+        NESTED_PRODUCT_PAYLOAD_TEMPLATE
+    )
+
+    return builder.build(
+        title=data["title"],
+        price=data["price"],
+        description=data["description"],
+        category=data["category"],
+        image=data["image"],
+        metadata={
+            "brand": data["brand"],
+            "manufacturer": {
+                "name": data["manufacturer_name"],
+                "country": data["manufacturer_country"]
+            }
+        }
     )
