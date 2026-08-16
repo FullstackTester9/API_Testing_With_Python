@@ -1,3 +1,14 @@
+# =====================================================
+# "Draft202012Validator" is a dedicated class from the
+# "jsonschema" library. It is used to validate data
+# structures against JSON schema draft 2020-12
+# specification.
+# "SchemaValidator" converts schema failures into
+# "AssertionError" using
+# "test_invalid_product_response_fails_schema()" method.
+# SchemaValidator -> Structural JSON contract validator.
+# =====================================================
+
 from jsonschema import Draft202012Validator
 
 

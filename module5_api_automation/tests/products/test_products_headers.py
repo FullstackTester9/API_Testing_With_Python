@@ -1,6 +1,9 @@
 import pytest
 
 
+# =====================================================
+# Tests for headers
+# =====================================================
 @pytest.mark.products
 def test_get_products_with_headers(api_client):
 

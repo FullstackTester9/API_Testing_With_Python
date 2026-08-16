@@ -1,6 +1,10 @@
 import pytest
 
 
+# =====================================================
+# Verify POST mechanism using product endpoint.
+# Returns 201.
+# =====================================================
 @pytest.mark.products
 def test_create_product(api_client):
 

@@ -1,6 +1,9 @@
 import pytest
 
 
+# =====================================================
+# Access products with product id.
+# =====================================================
 @pytest.mark.products
 def test_get_product_by_id(api_client):
 

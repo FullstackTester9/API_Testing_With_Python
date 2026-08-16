@@ -1,3 +1,11 @@
+# =====================================================
+# The "ApiClient.py" focuses on how HTTP communication
+# occurs.
+# "ApiClient.py" handles: Base URL, URL construction,
+# GET, POST, PUT, PATCH, DELETE, Headers, JSON body,
+# Query parameter, Timeout, SSL verification.
+# =====================================================
+
 import requests
 
 
@@ -18,6 +26,9 @@ class ApiClient:
     def _build_url(self, endpoint):
         return f"{self.base_url}/{endpoint.lstrip('/')}"
 
+    # =====================================================
+    # GET = Reads data from resources.
+    # =====================================================
     def get(
             self,
             endpoint,
@@ -41,6 +52,9 @@ class ApiClient:
             verify=self.verify_ssl
         )
 
+    # =====================================================
+    # POST = Create or submit data on resources.
+    # =====================================================
     def post(
             self,
             endpoint,
@@ -66,6 +80,9 @@ class ApiClient:
             verify=self.verify_ssl
         )
 
+    # =====================================================
+    # PUT = replace or update a resource
+    # =====================================================
     def put(
             self,
             endpoint,
@@ -89,6 +106,9 @@ class ApiClient:
             verify=self.verify_ssl
         )
 
+    # =====================================================
+    # PATCH = partially update a resource.
+    # =====================================================
     def patch(
             self,
             endpoint,
@@ -112,6 +132,9 @@ class ApiClient:
             verify=self.verify_ssl
         )
 
+    # =====================================================
+    # DELETE = delete resource permanently.
+    # =====================================================
     def delete(
         self,
         endpoint,
@@ -133,6 +156,11 @@ class ApiClient:
             verify=self.verify_ssl
         )
 
+    # =====================================================
+    # The _build_headers() method is responsible for
+    # building the final HTTP header. After token is
+    # generated.
+    # =====================================================
     def _build_headers(self, headers=None, authenticated=False):
 
         final_headers = {}

@@ -38,7 +38,7 @@ def test_request_without_authentication(
 
 
 # ==============================================================
-# Test Missing Token
+# Test Missing Token. This is an important failure condition.
 # ==============================================================
 @pytest.mark.authentication
 def test_authenticated_request_without_token(

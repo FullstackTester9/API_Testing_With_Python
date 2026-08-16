@@ -1,3 +1,8 @@
+# =====================================================
+# "TokenProvider" depends on "TokenManager". Gets the
+# token pass to "ApiClient".
+# =====================================================
+
 class TokenProvider:
 
     def __init__(self, token_manager):

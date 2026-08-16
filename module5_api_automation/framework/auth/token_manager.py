@@ -1,3 +1,8 @@
+# =====================================================
+# The job of "TokenManager" is to store token, retrieve
+# token, check whether token exists and remove token.
+# =====================================================
+
 class TokenManager:
 
     def __init__(self):

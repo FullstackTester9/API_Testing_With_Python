@@ -1,3 +1,9 @@
+# =====================================================
+# This describes the structure of the schema. The
+# response is "object". The "required" field is for
+# validation. The "type" allows that data type.
+# =====================================================
+
 PRODUCT_SCHEMA = {
     "type": "object",
 

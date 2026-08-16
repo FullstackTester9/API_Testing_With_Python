@@ -1,7 +1,6 @@
 import pytest
 
 from framework.schemas import PRODUCT_SCHEMA
-from jsonschema import ValidationError
 
 
 # ==============================================================
@@ -78,7 +77,9 @@ def test_product_complete_contract(
 
 
 # ==============================================================
-# Negative schema test
+# Negative schema test.
+# This proves not only valid responses passed but also failed
+# invalid responses.
 # ==============================================================
 @pytest.mark.contract
 def test_invalid_product_response_fails_schema(

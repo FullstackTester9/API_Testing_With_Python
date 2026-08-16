@@ -1,3 +1,10 @@
+# ========================================================================
+# This file is used for frameworks configuration. This is the
+# beginning of frameworks configuration's layer.
+# Also responsible for loading ".yaml" file.
+# ========================================================================
+
+
 from pathlib import Path
 
 import yaml
@@ -17,6 +24,9 @@ class ConfigLoader:
 
         self.config_file = config_file
 
+    # =====================================================
+    # Loads the configuration file.
+    # =====================================================
     def load(self):
         if not self.config_file.exists():
             raise FileNotFoundError(

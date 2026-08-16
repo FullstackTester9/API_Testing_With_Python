@@ -1,3 +1,8 @@
+# =====================================================
+# This file is home for all the configuration
+# related to the project. Whenever project runs
+# this file is invoked first.
+# =====================================================
 environment: qa
 
 api:

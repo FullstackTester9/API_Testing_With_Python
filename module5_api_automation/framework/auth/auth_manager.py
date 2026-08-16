@@ -1,5 +1,10 @@
-from framework.auth.token_manager import TokenManager
-
+# =====================================================
+# "AuthenticationManager" reads "authentication" from
+# config.yaml. Gets username & password and login into
+# API, extracts & sets token in memory.
+# It uses "api_client" to use HTTP layer. This prevents
+# duplication of HTTP implementation.
+# =====================================================
 
 class AuthenticationManager:
 

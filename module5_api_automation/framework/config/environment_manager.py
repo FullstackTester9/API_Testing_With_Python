@@ -1,3 +1,11 @@
+# =====================================================
+# The purpose of this file is to select the
+# environment: dev or qa.
+# In the PowerShell type: $env:TEST_ENV="qa" for
+# selecting the environment.
+# It creates an environment variable for your current
+# PowerShell session.
+# =====================================================
 import os
 
 from framework.config.config_loader import ConfigLoader
@@ -12,6 +20,10 @@ class EnvironmentManager:
             or "qa"
         )
 
+    # =====================================================
+    # Loads the environment file.
+    # "qa.yaml" or "dev.yaml"
+    # =====================================================
     def load(self):
         config_loader = ConfigLoader()
 
@@ -32,6 +44,11 @@ class EnvironmentManager:
             environment_config
         )
 
+    # =====================================================
+    # The class "EnvironmentManager" loads both the
+    # "config.yaml" and "qa.yaml" results in a merged
+    # dictionary available to tests
+    # =====================================================
     @staticmethod
     def _merge_configs(common_config, environment_config):
         merged_config = common_config.copy()

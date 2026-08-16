@@ -1,6 +1,15 @@
+# =====================================================
+# This file actually communicate with FakeStoreAPI.
+# =====================================================
+
+
 import pytest
 
 
+# =====================================================
+# First real API test case that actually communicate
+# with an API.
+# =====================================================
 @pytest.mark.smoke
 @pytest.mark.products
 def test_get_products(api_client):
