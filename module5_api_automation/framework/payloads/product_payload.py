@@ -1,4 +1,6 @@
 from datetime import datetime
+from framework.payloads.request_builder import RequestBuilder
+from framework.payloads.templates import PRODUCT_PAYLOAD_TEMPLATE
 
 
 # =====================================================
@@ -30,3 +32,30 @@ def build_dynamic_product_title(prefix="QA Product"):
     )
 
     return f"{prefix} {timestamp}"
+
+# =====================================================
+# Building the payload for "PRODUCT" using template.
+# =====================================================
+def build_product_request(data):
+    builder = RequestBuilder(PRODUCT_PAYLOAD_TEMPLATE)
+
+    return builder.build(
+        title=data["title"],
+        price=data["price"],
+        description=data["description"],
+        category=data["category"],
+        image=data["image"]
+    )
+
+# =====================================================
+# Building the payload for "PRODUCT" using optional
+# fields template.
+# =====================================================
+PRODUCT_OPTIONAL_PAYLOAD_TEMPLATE = {
+    "title": "{title}",
+    "price": "{price}",
+    "description": "{description}",
+    "category": "{category}",
+    "image": "{image}",
+    "brand": "{brand}"
+}
