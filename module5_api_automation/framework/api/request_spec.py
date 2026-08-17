@@ -42,6 +42,10 @@ class RequestSpec:
 
     verify_ssl: bool | None = None
 
+    retry_count: int = 0
+
+    retry_delay: float = 0.0
+
     authenticated: bool = False
 
     def __post_init__(self):
@@ -56,6 +60,16 @@ class RequestSpec:
         if not self.endpoint:
             raise ValueError(
                 "Endpoint cannot be empty"
+            )
+
+        if self.retry_count < 0:
+            raise ValueError(
+                "Retry count cannot be negative"
+            )
+
+        if self.retry_delay < 0:
+            raise ValueError(
+                "Retry delay cannot be negative"
             )
 
     def resolved_endpoint(self) -> str:

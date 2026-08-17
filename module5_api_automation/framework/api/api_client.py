@@ -6,6 +6,7 @@
 # Query parameter, Timeout, SSL verification.
 # =====================================================
 
+import time
 import requests
 
 from framework.api.request_spec import RequestSpec
@@ -236,63 +237,147 @@ class ApiClient:
             else self.verify_ssl
         )
 
-        # This part executes the actual HTTP request.
-        try:
+        # Number of total attempts.
+        # Example:
+        # retry_count = 0 → 1 attempt
+        # retry_count = 1 → 2 attempts
+        # retry_count = 2 → 3 attempts
+        total_attempts = request_spec.retry_count + 1
 
-            response = requests.request(
-                method=method,
-                url=url,
-                params=request_spec.query_params,
-                headers=final_headers,
-                json=request_spec.json,
-                timeout=timeout,
-                verify=verify_ssl
+        for attempt in range(1, total_attempts + 1):
+
+            # =====================================================
+            # Execute the actual HTTP request.
+            # =====================================================
+            try:
+
+                response = requests.request(
+                    method=method,
+                    url=url,
+                    params=request_spec.query_params,
+                    headers=final_headers,
+                    json=request_spec.json,
+                    timeout=timeout,
+                    verify=verify_ssl
+                )
+
+            # =====================================================
+            # Timeout handling.
+            # Retry if another attempt is available.
+            # =====================================================
+            except requests.exceptions.Timeout as exc:
+
+                if attempt < total_attempts:
+                    self._wait_before_retry(
+                        request_spec.retry_delay
+                    )
+
+                    continue
+
+                raise RequestExecutionError(
+                    (
+                        f"Request timed out: "
+                        f"{method} {url}"
+                    ),
+                    original_exception=exc
+                ) from exc
+
+            # =====================================================
+            # Connection failure handling.
+            # Retry if another attempt is available.
+            # =====================================================
+            except requests.exceptions.ConnectionError as exc:
+
+                if attempt < total_attempts:
+                    self._wait_before_retry(
+                        request_spec.retry_delay
+                    )
+
+                    continue
+
+                raise RequestExecutionError(
+                    (
+                        f"Connection failed: "
+                        f"{method} {url}"
+                    ),
+                    original_exception=exc
+                ) from exc
+
+            # =====================================================
+            # Generic requests exception.
+            # These are NOT automatically retried.
+            # =====================================================
+            except requests.exceptions.RequestException as exc:
+
+                raise RequestExecutionError(
+                    (
+                        f"HTTP request execution failed: "
+                        f"{method} {url}"
+                    ),
+                    original_exception=exc
+                ) from exc
+
+            # =====================================================
+            # Unsuccessful HTTP response.
+            # =====================================================
+            if not response.ok:
+
+                # Retry only transient HTTP statuses.
+                if (
+                        self._is_retryable_status(
+                            response.status_code
+                        )
+                        and attempt < total_attempts
+                ):
+                    self._wait_before_retry(
+                        request_spec.retry_delay
+                    )
+
+                    continue
+
+                raise HttpResponseError(
+                    (
+                        f"API returned unsuccessful HTTP "
+                        f"status {response.status_code} "
+                        f"for {method} {url}"
+                    ),
+                    response=response
+                )
+
+            # =====================================================
+            # Successful response.
+            # =====================================================
+            return response
+
+    # =====================================================
+    # This is retry helper method.
+    # =====================================================
+    def _is_retryable_exception(self, exception):
+
+        return isinstance(
+            exception,
+            (
+                requests.exceptions.Timeout,
+                requests.exceptions.ConnectionError
             )
+        )
 
-        # This block handles timeout failures.
-        except requests.exceptions.Timeout as exc:
+    # =====================================================
+    # Retryable HTTP status helper.
+    # =====================================================
+    def _is_retryable_status(self, status_code):
 
-            raise RequestExecutionError(
-                (
-                    f"Request timed out: "
-                    f"{method} {url}"
-                ),
-                original_exception=exc
-            ) from exc # This preserves the original exception as the cause.
+        return status_code in {
+            502,
+            503,
+            504
+        }
 
-        # This handles connection failures.
-        except requests.exceptions.ConnectionError as exc:
+    # =====================================================
+    # Retry delay helper.
+    # The method makes retry timing easy to control and test.
+    # =====================================================
+    def _wait_before_retry(self, delay):
 
-            raise RequestExecutionError(
-                (
-                    f"Connection failed: "
-                    f"{method} {url}"
-                ),
-                original_exception=exc
-            ) from exc
-
-        # More specific exceptions must be handled
-        # before the generic parent exception.
-        except requests.exceptions.RequestException as exc:
-
-            raise RequestExecutionError(
-                (
-                    f"HTTP request execution failed: "
-                    f"{method} {url}"
-                ),
-                original_exception=exc
-            ) from exc
-
-        # Detects the unsuccessful response.
-        # Like 404 not found.
-        if not response.ok:
-            raise HttpResponseError(
-                (
-                    f"API returned unsuccessful HTTP status "
-                    f"{response.status_code} for "
-                    f"{method} {url}"
-                ),
-                response=response
-            )
-
-        return response
+        if delay > 0:
+            time.sleep(delay)
