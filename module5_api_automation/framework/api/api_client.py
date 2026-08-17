@@ -9,6 +9,10 @@
 import requests
 
 from framework.api.request_spec import RequestSpec
+from .exceptions import (
+    RequestExecutionError,
+    HttpResponseError
+)
 
 
 class ApiClient:
@@ -232,12 +236,63 @@ class ApiClient:
             else self.verify_ssl
         )
 
-        return requests.request(
-            method=method,
-            url=url,
-            params=request_spec.query_params,
-            headers=final_headers,
-            json=request_spec.json,
-            timeout=timeout,
-            verify=verify_ssl
-        )
+        # This part executes the actual HTTP request.
+        try:
+
+            response = requests.request(
+                method=method,
+                url=url,
+                params=request_spec.query_params,
+                headers=final_headers,
+                json=request_spec.json,
+                timeout=timeout,
+                verify=verify_ssl
+            )
+
+        # This block handles timeout failures.
+        except requests.exceptions.Timeout as exc:
+
+            raise RequestExecutionError(
+                (
+                    f"Request timed out: "
+                    f"{method} {url}"
+                ),
+                original_exception=exc
+            ) from exc # This preserves the original exception as the cause.
+
+        # This handles connection failures.
+        except requests.exceptions.ConnectionError as exc:
+
+            raise RequestExecutionError(
+                (
+                    f"Connection failed: "
+                    f"{method} {url}"
+                ),
+                original_exception=exc
+            ) from exc
+
+        # More specific exceptions must be handled
+        # before the generic parent exception.
+        except requests.exceptions.RequestException as exc:
+
+            raise RequestExecutionError(
+                (
+                    f"HTTP request execution failed: "
+                    f"{method} {url}"
+                ),
+                original_exception=exc
+            ) from exc
+
+        # Detects the unsuccessful response.
+        # Like 404 not found.
+        if not response.ok:
+            raise HttpResponseError(
+                (
+                    f"API returned unsuccessful HTTP status "
+                    f"{response.status_code} for "
+                    f"{method} {url}"
+                ),
+                response=response
+            )
+
+        return response
