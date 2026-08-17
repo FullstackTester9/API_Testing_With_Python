@@ -191,11 +191,25 @@ class ApiClient:
         return final_headers
 
     # =====================================================
-    #
-    #
-    #
+    # This method now supports only GET, POST, PUT, PATCH,
+    # DELETE HTTP methods and rejects everything else.
     # =====================================================
     def send(self, request_spec: RequestSpec):
+
+        supported_methods = {
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+        }
+
+        method = request_spec.method.upper()
+
+        if method not in supported_methods:
+            raise ValueError(
+                f"Unsupported HTTP method: {method}"
+            )
 
         endpoint = request_spec.resolved_endpoint()
 
@@ -219,7 +233,7 @@ class ApiClient:
         )
 
         return requests.request(
-            method=request_spec.method,
+            method=method,
             url=url,
             params=request_spec.query_params,
             headers=final_headers,

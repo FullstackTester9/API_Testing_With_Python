@@ -407,3 +407,466 @@ def test_api_client_send_supports_authenticated_request():
             ["Authorization"]
             == "Bearer test-token"
         )
+
+
+# =====================================================
+# Test for unsupported HTTP method.
+# =====================================================
+def test_api_client_send_rejects_unsupported_http_method():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    request = RequestSpec(
+        method="OPTIONS",
+        endpoint="/products"
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Unsupported HTTP method"
+    ):
+        client.send(request)
+
+
+# =====================================================
+# Test all supported HTTP method.
+# =====================================================
+@pytest.mark.parametrize(
+    "method",
+    [
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE"
+    ]
+)
+def test_api_client_send_supports_http_methods(method):
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    request = RequestSpec(
+        method=method,
+        endpoint="/products"
+    )
+
+    with patch(
+        "framework.api.api_client.requests.request"
+    ) as mock_request:
+
+        client.send(request)
+
+        assert (
+            mock_request.call_args.kwargs["method"]
+            == method
+        )
+
+
+# =====================================================
+# Test lowercase HTTP method. Verifies that execution
+# layer receives normalized value.
+# =====================================================
+def test_api_client_send_normalizes_lowercase_method():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    request = RequestSpec(
+        method="post",
+        endpoint="/products"
+    )
+
+    with patch(
+        "framework.api.api_client.requests.request"
+    ) as mock_request:
+
+        client.send(request)
+
+        assert (
+            mock_request.call_args.kwargs["method"]
+            == "POST"
+        )
+
+
+# =====================================================
+# Test request level timeout.
+# =====================================================
+def test_request_timeout_overrides_client_timeout():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com",
+        timeout=30
+    )
+
+    request = RequestSpec(
+        method="GET",
+        endpoint="/products",
+        timeout=10
+    )
+
+    with patch(
+        "framework.api.api_client.requests.request"
+    ) as mock_request:
+
+        client.send(request)
+
+        assert (
+            mock_request.call_args.kwargs["timeout"]
+            == 10
+        )
+
+
+# =====================================================
+# Test client level timeout fallback.
+# =====================================================
+def test_client_timeout_used_when_request_timeout_missing():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com",
+        timeout=45
+    )
+
+    request = RequestSpec(
+        method="GET",
+        endpoint="/products"
+    )
+
+    with patch(
+        "framework.api.api_client.requests.request"
+    ) as mock_request:
+
+        client.send(request)
+
+        assert (
+            mock_request.call_args.kwargs["timeout"]
+            == 45
+        )
+
+
+# =====================================================
+# Test request level SSL override.
+# =====================================================
+def test_request_ssl_setting_overrides_client_setting():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com",
+        verify_ssl=True
+    )
+
+    request = RequestSpec(
+        method="GET",
+        endpoint="/products",
+        verify_ssl=False
+    )
+
+    with patch(
+        "framework.api.api_client.requests.request"
+    ) as mock_request:
+
+        client.send(request)
+
+        assert (
+            mock_request.call_args.kwargs["verify"]
+            is False
+        )
+
+
+# =====================================================
+# Test client level SSL fallback.
+# =====================================================
+def test_client_ssl_setting_used_when_request_setting_missing():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com",
+        verify_ssl=False
+    )
+
+    request = RequestSpec(
+        method="GET",
+        endpoint="/products"
+    )
+
+    with patch(
+        "framework.api.api_client.requests.request"
+    ) as mock_request:
+
+        client.send(request)
+
+        assert (
+            mock_request.call_args.kwargs["verify"]
+            is False
+        )
+
+
+# =====================================================
+# Test query parameter dispatch.
+# =====================================================
+def test_query_parameters_are_dispatched():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    request = RequestSpec(
+        method="GET",
+        endpoint="/products",
+        query_params={
+            "limit": 5
+        }
+    )
+
+    with patch(
+        "framework.api.api_client.requests.request"
+    ) as mock_request:
+
+        client.send(request)
+
+        assert (
+            mock_request.call_args.kwargs["params"]
+            == {"limit": 5}
+        )
+
+
+# =====================================================
+# Test header dispatch.
+# =====================================================
+def test_headers_are_dispatched():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    request = RequestSpec(
+        method="GET",
+        endpoint="/products",
+        headers={
+            "Accept": "application/json"
+        }
+    )
+
+    with patch(
+        "framework.api.api_client.requests.request"
+    ) as mock_request:
+
+        client.send(request)
+
+        assert (
+            mock_request.call_args.kwargs["headers"]
+            == {
+                "Accept": "application/json"
+            }
+        )
+
+
+# =====================================================
+# Test JSON payload dispatch.
+# =====================================================
+def test_json_payload_is_dispatched():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    payload = {
+        "title": "Automation Product",
+        "price": 99.99
+    }
+
+    request = RequestSpec(
+        method="POST",
+        endpoint="/products",
+        json=payload
+    )
+
+    with patch(
+        "framework.api.api_client.requests.request"
+    ) as mock_request:
+
+        client.send(request)
+
+        assert (
+            mock_request.call_args.kwargs["json"]
+            == payload
+        )
+
+
+# =====================================================
+# Test path parameter dispatch.
+# =====================================================
+def test_path_parameter_is_resolved_before_dispatch():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    request = RequestSpec(
+        method="GET",
+        endpoint="/products/{product_id}",
+        path_params={
+            "product_id": 1
+        }
+    )
+
+    with patch(
+        "framework.api.api_client.requests.request"
+    ) as mock_request:
+
+        client.send(request)
+
+        assert (
+            mock_request.call_args.kwargs["url"]
+            == "https://fakestoreapi.com/products/1"
+        )
+
+
+# =====================================================
+# Test authentication dispatch
+# =====================================================
+def test_authenticated_request_injects_authorization_header():
+
+    class FakeTokenProvider:
+
+        def get_token(self):
+            return "phase14-token"
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com",
+        token_provider=FakeTokenProvider()
+    )
+
+    request = RequestSpec(
+        method="GET",
+        endpoint="/products/1",
+        authenticated=True
+    )
+
+    with patch(
+        "framework.api.api_client.requests.request"
+    ) as mock_request:
+
+        client.send(request)
+
+        headers = (
+            mock_request.call_args.kwargs["headers"]
+        )
+
+        assert (
+            headers["Authorization"]
+            == "Bearer phase14-token"
+        )
+
+
+# =====================================================
+# Test header & authentication in combination.
+# =====================================================
+def test_authenticated_request_preserves_custom_headers():
+
+    class FakeTokenProvider:
+
+        def get_token(self):
+            return "phase14-token"
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com",
+        token_provider=FakeTokenProvider()
+    )
+
+    request = RequestSpec(
+        method="GET",
+        endpoint="/products/1",
+        headers={
+            "Accept": "application/json"
+        },
+        authenticated=True
+    )
+
+    with patch(
+        "framework.api.api_client.requests.request"
+    ) as mock_request:
+
+        client.send(request)
+
+        headers = (
+            mock_request.call_args.kwargs["headers"]
+        )
+
+        assert (
+            headers["Accept"]
+            == "application/json"
+        )
+
+        assert (
+            headers["Authorization"]
+            == "Bearer phase14-token"
+        )
+
+
+# =====================================================
+# Test complete request dispatch. This is an end-to-end
+# framework-level dispatch test.
+# =====================================================
+def test_complete_request_dispatch():
+
+    class FakeTokenProvider:
+
+        def get_token(self):
+            return "complete-token"
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com",
+        timeout=30,
+        verify_ssl=True,
+        token_provider=FakeTokenProvider()
+    )
+
+    payload = {
+        "title": "Complete Request",
+        "price": 150
+    }
+
+    request = RequestSpec(
+        method="POST",
+        endpoint="/products/{product_id}",
+        path_params={
+            "product_id": 1
+        },
+        query_params={
+            "source": "pytest"
+        },
+        headers={
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        json=payload,
+        timeout=15,
+        verify_ssl=False,
+        authenticated=True
+    )
+
+    with patch(
+        "framework.api.api_client.requests.request"
+    ) as mock_request:
+
+        client.send(request)
+
+        mock_request.assert_called_once_with(
+            method="POST",
+            url="https://fakestoreapi.com/products/1",
+            params={
+                "source": "pytest"
+            },
+            headers={
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "Authorization": "Bearer complete-token"
+            },
+            json=payload,
+            timeout=15,
+            verify=False
+        )
+
