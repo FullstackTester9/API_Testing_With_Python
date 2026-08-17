@@ -8,6 +8,8 @@
 
 import requests
 
+from framework.api.request_spec import RequestSpec
+
 
 class ApiClient:
 
@@ -187,3 +189,41 @@ class ApiClient:
             final_headers["Authorization"] = f"Bearer {token}"
 
         return final_headers
+
+    # =====================================================
+    #
+    #
+    #
+    # =====================================================
+    def send(self, request_spec: RequestSpec):
+
+        endpoint = request_spec.resolved_endpoint()
+
+        url = self._build_url(endpoint)
+
+        final_headers = self._build_headers(
+            headers=request_spec.headers,
+            authenticated=request_spec.authenticated
+        )
+
+        timeout = (
+            request_spec.timeout
+            if request_spec.timeout is not None
+            else self.timeout
+        )
+
+        verify_ssl = (
+            request_spec.verify_ssl
+            if request_spec.verify_ssl is not None
+            else self.verify_ssl
+        )
+
+        return requests.request(
+            method=request_spec.method,
+            url=url,
+            params=request_spec.query_params,
+            headers=final_headers,
+            json=request_spec.json,
+            timeout=timeout,
+            verify=verify_ssl
+        )
