@@ -1,5 +1,6 @@
+import requests
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from framework.api.api_client import ApiClient
 from framework.api.request_spec import RequestSpec
@@ -870,3 +871,91 @@ def test_complete_request_dispatch():
             verify=False
         )
 
+
+# =====================================================
+# Test invalid backoff factor.
+# =====================================================
+def test_negative_backoff_factor_is_rejected():
+
+    with pytest.raises(ValueError):
+
+        RequestSpec(
+            method="GET",
+            endpoint="/products",
+            backoff_factor=-1
+        )
+
+
+# =====================================================
+# Test zero backoff factor.
+# =====================================================
+def test_zero_backoff_factor_is_rejected():
+
+    with pytest.raises(ValueError):
+
+        RequestSpec(
+            method="GET",
+            endpoint="/products",
+            backoff_factor=0
+        )
+
+
+# =====================================================
+# Test invalid maximum delay.
+# =====================================================
+def test_negative_max_retry_delay_is_rejected():
+
+    with pytest.raises(ValueError):
+
+        RequestSpec(
+            method="GET",
+            endpoint="/products",
+            max_retry_delay=-1
+        )
+
+
+# =====================================================
+# Test actual retry scheduling
+# =====================================================
+def test_retry_uses_exponential_backoff():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    request = RequestSpec(
+        method="GET",
+        endpoint="/products",
+        retry_count=2,
+        retry_delay=2
+    )
+
+    with patch(
+        "framework.api.api_client.requests.request"
+    ) as mock_request:
+
+        mock_request.side_effect = [
+            requests.exceptions.Timeout(),
+            requests.exceptions.Timeout(),
+            Mock(ok=True)
+        ]
+
+        with patch(
+            "framework.api.api_client.time.sleep"
+        ) as mock_sleep:
+
+            client.send(request)
+
+            assert mock_sleep.call_count == 2
+
+            mock_sleep.assert_any_call(2)
+            mock_sleep.assert_any_call(4)
+
+
+# =====================================================
+#
+# =====================================================
+
+# =====================================================
+#
+# =====================================================

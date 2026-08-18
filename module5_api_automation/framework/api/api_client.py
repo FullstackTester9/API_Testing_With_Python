@@ -271,9 +271,12 @@ class ApiClient:
                         self._is_retryable_method(method)
                         and attempt < total_attempts
                 ):
-                    self._wait_before_retry(
-                        request_spec.retry_delay
+                    delay = self._calculate_retry_delay(
+                        request_spec,
+                        attempt
                     )
+
+                    self._wait_before_retry(delay)
 
                     continue
 
@@ -295,9 +298,12 @@ class ApiClient:
                         self._is_retryable_method(method)
                         and attempt < total_attempts
                 ):
-                    self._wait_before_retry(
-                        request_spec.retry_delay
+                    delay = self._calculate_retry_delay(
+                        request_spec,
+                        attempt
                     )
+
+                    self._wait_before_retry(delay)
 
                     continue
 
@@ -336,9 +342,12 @@ class ApiClient:
                 )
                         and attempt < total_attempts
                 ):
-                    self._wait_before_retry(
-                        request_spec.retry_delay
+                    delay = self._calculate_retry_delay(
+                        request_spec,
+                        attempt
                     )
+
+                    self._wait_before_retry(delay)
 
                     continue
 
@@ -400,3 +409,30 @@ class ApiClient:
             "PUT",
             "DELETE"
         }
+
+    # =====================================================
+    # Backoff calculation
+    # =====================================================
+    def _calculate_retry_delay(
+            self,
+            request_spec,
+            attempt
+    ):
+
+        base_delay = request_spec.retry_delay
+
+        backoff_factor = request_spec.backoff_factor
+
+        delay = (
+                base_delay
+                * (2 ** (attempt - 1))
+                * backoff_factor
+        )
+
+        if request_spec.max_retry_delay is not None:
+            delay = min(
+                delay,
+                request_spec.max_retry_delay
+            )
+
+        return delay

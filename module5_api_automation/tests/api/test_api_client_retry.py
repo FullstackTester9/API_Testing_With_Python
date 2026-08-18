@@ -468,6 +468,148 @@ def test_idempotency_key_is_preserved():
 
 
 # =====================================================
+# Default backoff.
+# =====================================================
+def test_default_backoff_delay():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    request = RequestSpec(
+        method="GET",
+        endpoint="/products",
+        retry_delay=2
+    )
+
+    assert (
+        client._calculate_retry_delay(
+            request,
+            1
+        )
+        == 2
+    )
+
+
+# =====================================================
+# Test exponential backoff.
+# =====================================================
+def test_exponential_backoff_delay():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    request = RequestSpec(
+        method="GET",
+        endpoint="/products",
+        retry_delay=2
+    )
+
+    assert (
+        client._calculate_retry_delay(
+            request,
+            1
+        )
+        == 2
+    )
+
+    assert (
+        client._calculate_retry_delay(
+            request,
+            2
+        )
+        == 4
+    )
+
+    assert (
+        client._calculate_retry_delay(
+            request,
+            3
+        )
+        == 8
+    )
+
+
+# =====================================================
+# Test backoff factor.
+# =====================================================
+def test_backoff_factor():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    request = RequestSpec(
+        method="GET",
+        endpoint="/products",
+        retry_delay=2,
+        backoff_factor=2
+    )
+
+    assert (
+        client._calculate_retry_delay(
+            request,
+            1
+        )
+        == 4
+    )
+
+    assert (
+        client._calculate_retry_delay(
+            request,
+            2
+        )
+        == 8
+    )
+
+
+# =====================================================
+# Test maximum delay.
+# =====================================================
+def test_max_retry_delay():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    request = RequestSpec(
+        method="GET",
+        endpoint="/products",
+        retry_delay=2,
+        max_retry_delay=5
+    )
+
+    assert (
+        client._calculate_retry_delay(
+            request,
+            1
+        )
+        == 2
+    )
+
+    assert (
+        client._calculate_retry_delay(
+            request,
+            2
+        )
+        == 4
+    )
+
+    assert (
+        client._calculate_retry_delay(
+            request,
+            3
+        )
+        == 5
+    )
+
+
+
+
+
+
+# =====================================================
 #
 # =====================================================
 

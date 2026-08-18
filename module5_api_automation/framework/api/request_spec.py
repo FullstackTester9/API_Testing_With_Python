@@ -46,6 +46,10 @@ class RequestSpec:
 
     retry_delay: float = 0.0
 
+    backoff_factor: float = 1.0
+
+    max_retry_delay: float | None = None
+
     authenticated: bool = False
 
     def __post_init__(self):
@@ -70,6 +74,31 @@ class RequestSpec:
         if self.retry_delay < 0:
             raise ValueError(
                 "Retry delay cannot be negative"
+            )
+        # =====================================================
+        # Validate backoff configuration.
+        # =====================================================
+        if self.retry_count < 0:
+            raise ValueError(
+                "Retry count cannot be negative"
+            )
+
+        if self.retry_delay < 0:
+            raise ValueError(
+                "Retry delay cannot be negative"
+            )
+
+        if self.backoff_factor <= 0:
+            raise ValueError(
+                "Backoff factor must be greater than zero"
+            )
+
+        if (
+                self.max_retry_delay is not None
+                and self.max_retry_delay <= 0
+        ):
+            raise ValueError(
+                "Maximum retry delay must be greater than zero"
             )
 
     def resolved_endpoint(self) -> str:
