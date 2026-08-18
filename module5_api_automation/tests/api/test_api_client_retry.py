@@ -302,3 +302,175 @@ def test_retry_delay():
 
             mock_sleep.assert_called_once_with(2)
 
+
+# =====================================================
+# Test retry safe methods (Retry policy test).
+# =====================================================
+def test_get_is_retryable_method():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    assert client._is_retryable_method("GET") is True
+
+
+# =====================================================
+# Test PUT (Retry policy test).
+# =====================================================
+def test_put_is_retryable_method():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    assert client._is_retryable_method("PUT") is True
+
+
+# =====================================================
+# Test DELETE (Retry policy test).
+# =====================================================
+def test_delete_is_retryable_method():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    assert client._is_retryable_method("DELETE") is True
+
+
+# =====================================================
+# Tests POST is not automatically retryable.
+# =====================================================
+def test_post_is_not_retryable_method():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    assert client._is_retryable_method("POST") is False
+
+
+# =====================================================
+# Test PATCH is not automatically retryable.
+# =====================================================
+def test_patch_is_not_retryable_method():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    assert client._is_retryable_method("PATCH") is False
+
+
+# =====================================================
+# Test POST timeout is not retried.
+# =====================================================
+def test_post_timeout_is_not_retried():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    request = RequestSpec(
+        method="POST",
+        endpoint="/products",
+        retry_count=3
+    )
+
+    with patch(
+        "framework.api.api_client.requests.request"
+    ) as mock_request:
+
+        mock_request.side_effect = (
+            requests.exceptions.Timeout()
+        )
+
+        with pytest.raises(
+            RequestExecutionError
+        ):
+
+            client.send(request)
+
+        assert mock_request.call_count == 1
+
+
+# =====================================================
+# Test POST 503 is not retried.
+# =====================================================
+def test_post_503_is_not_retried():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    request = RequestSpec(
+        method="POST",
+        endpoint="/products",
+        retry_count=3
+    )
+
+    response_503 = Mock()
+
+    response_503.ok = False
+    response_503.status_code = 503
+
+    with patch(
+        "framework.api.api_client.requests.request",
+        return_value=response_503
+    ) as mock_request:
+
+        with pytest.raises(
+            HttpResponseError
+        ):
+
+            client.send(request)
+
+        assert mock_request.call_count == 1
+
+
+# =====================================================
+# Test idempotency-key preservation. Verify that the
+# header reaches the HTTP request.
+# This test does not make POST retryable.
+# =====================================================
+def test_idempotency_key_is_preserved():
+
+    client = ApiClient(
+        base_url="https://fakestoreapi.com"
+    )
+
+    request = RequestSpec(
+        method="POST",
+        endpoint="/products",
+        headers={
+            "Idempotency-Key": "unique-request-123"
+        }
+    )
+
+    response = Mock()
+    response.ok = True
+    response.status_code = 201
+
+    with patch(
+        "framework.api.api_client.requests.request",
+        return_value=response
+    ) as mock_request:
+
+        client.send(request)
+
+        call_kwargs = mock_request.call_args.kwargs
+
+        assert (
+            call_kwargs["headers"]["Idempotency-Key"]
+            == "unique-request-123"
+        )
+
+
+# =====================================================
+#
+# =====================================================
+
+# =====================================================
+#
+# =====================================================

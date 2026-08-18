@@ -267,7 +267,10 @@ class ApiClient:
             # =====================================================
             except requests.exceptions.Timeout as exc:
 
-                if attempt < total_attempts:
+                if (
+                        self._is_retryable_method(method)
+                        and attempt < total_attempts
+                ):
                     self._wait_before_retry(
                         request_spec.retry_delay
                     )
@@ -288,7 +291,10 @@ class ApiClient:
             # =====================================================
             except requests.exceptions.ConnectionError as exc:
 
-                if attempt < total_attempts:
+                if (
+                        self._is_retryable_method(method)
+                        and attempt < total_attempts
+                ):
                     self._wait_before_retry(
                         request_spec.retry_delay
                     )
@@ -324,9 +330,10 @@ class ApiClient:
 
                 # Retry only transient HTTP statuses.
                 if (
-                        self._is_retryable_status(
-                            response.status_code
-                        )
+                        self._is_retryable_method(method)
+                        and self._is_retryable_status(
+                    response.status_code
+                )
                         and attempt < total_attempts
                 ):
                     self._wait_before_retry(
@@ -337,9 +344,9 @@ class ApiClient:
 
                 raise HttpResponseError(
                     (
-                        f"API returned unsuccessful HTTP "
-                        f"status {response.status_code} "
-                        f"for {method} {url}"
+                        f"API returned unsuccessful HTTP status "
+                        f"{response.status_code} for "
+                        f"{method} {url}"
                     ),
                     response=response
                 )
@@ -381,3 +388,15 @@ class ApiClient:
 
         if delay > 0:
             time.sleep(delay)
+
+    # =====================================================
+    # This gives the framework a centralized definition
+    # of retry-safe methods.
+    # =====================================================
+    def _is_retryable_method(self, method):
+
+        return method.upper() in {
+            "GET",
+            "PUT",
+            "DELETE"
+        }
